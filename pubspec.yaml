@@ -1,0 +1,31 @@
+name: vulcanizing_app_ignite_creative
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.3.3 <4.0.0'
+
+dependencies:
+  firebase_auth: ^4.19.0
+  firebase_core: ^2.28.0
+  firebase_dynamic_links: ^5.5.0
+  firebase_ui_auth: ^1.13.1
+  cloud_firestore: ^4.16.0
+  firebase_database: ^10.5.0
+  google_maps_flutter: ^2.0.6
+  flutter_map: ^6.1.0
+  flutter_map_location_picker: ^0.0.4
+  url_launcher: ^6.0.9
+  latlong2: ^0.9.1
+  
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,105 @@
+{
+  "project_info": {
+    "project_number": "384795057808",
+    "project_id": "vulcanizershop-dd4e9",
+    "storage_bucket": "vulcanizershop-dd4e9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:384795057808:android:b2da6dcf29641a1cca0215",
+        "android_client_info": {
+          "package_name": "com.example.admin_ignitecreative"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7mkl-KzqtHQTcY096nzX6t2AGyzusSD4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:384795057808:android:b818cebcf516a9c1ca0215",
+        "android_client_info": {
+          "package_name": "com.example.shop_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7mkl-KzqtHQTcY096nzX6t2AGyzusSD4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:384795057808:android:c74806dabc01834dca0215",
+        "android_client_info": {
+          "package_name": "com.example.vulcanizing_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7mkl-KzqtHQTcY096nzX6t2AGyzusSD4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:384795057808:android:f25bfbb1cc0e6306ca0215",
+        "android_client_info": {
+          "package_name": "com.example.vulcanizing_app_ignite_creative"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7mkl-KzqtHQTcY096nzX6t2AGyzusSD4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:384795057808:android:69e44f2c6086a9a1ca0215",
+        "android_client_info": {
+          "package_name": "com.example.vulcanizing_shop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7mkl-KzqtHQTcY096nzX6t2AGyzusSD4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
