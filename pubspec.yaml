@@ -17,7 +17,11 @@ dependencies:
   flutter_map: ^6.1.0
   flutter_map_location_picker: ^0.0.4
   url_launcher: ^6.0.9
+  firebase_storage: ^11.7.0
+  image_picker: ^0.8.9
+  path_provider: ^2.0.14
   latlong2: ^0.9.1
+  intl: ^0.18.1
   
   flutter:
     sdk: flutter

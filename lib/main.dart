@@ -1,10 +1,17 @@
+
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider;
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vulcanizing_app_ignite_creative/firebase_options.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -219,6 +226,7 @@ class BookingCard extends StatelessWidget {
   }
 }
 
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
@@ -227,6 +235,42 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  // Function to fetch admin messages from Firestore
+  Future<List<Map<String, dynamic>>> _fetchAdminMessages() async {
+  try {
+    String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? ''; // Get the current user's ID
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('messages')
+        .where('receiverId', isEqualTo: currentUserId) // Filter messages for the current user
+        .orderBy('timestamp', descending: true)
+        .get();
+    
+    List<Map<String, dynamic>> messages = [];
+    querySnapshot.docs.forEach((doc) {
+      messages.add({
+        'message': doc['message'], // Retrieve message field
+        'timestamp': doc['timestamp'], // Retrieve timestamp field
+      });
+    });
+    
+    return messages;
+  } catch (e) {
+    print('Error fetching admin messages: $e');
+    throw e; // Rethrow the error for handling in UI
+  }
+}
+
+  // Function para i-convert ang timestamp sa tamang format
+  String formatTimestamp(Timestamp timestamp) {
+    // Convert Timestamp object to DateTime
+    DateTime dateTime = timestamp.toDate();
+
+    // I-format ang DateTime sa iyong gusto na format
+    String formattedDateTime = DateFormat('MMMM d, yyyy, hh:mm a').format(dateTime);
+
+    return formattedDateTime;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -242,22 +286,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      body: Center(
-        child: const Text('Profile content goes here'),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Admin Messages',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: _fetchAdminMessages(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                }
+                if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Text('No messages found.');
+                }
+                List<Map<String, dynamic>> messages = snapshot.data!;
+                return Column(
+                  children: messages.map((message) {
+                    return ListTile(
+                      title: Text(message['message']),
+                      subtitle: Text('Sent: ${formatTimestamp(message['timestamp'])}'),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
-}class InformationScreen extends StatefulWidget {
+}
+
+
+class InformationScreen extends StatefulWidget {
   @override
   _InformationScreenState createState() => _InformationScreenState();
 }
+
 class _InformationScreenState extends State<InformationScreen> {
   late User? _user;
   final _formKey = GlobalKey<FormState>();
   TextEditingController _firstNameController = TextEditingController();
   TextEditingController _lastNameController = TextEditingController();
-  TextEditingController _PhoneNumer = TextEditingController();
-  final String _selectedRole = 'Shop Owner'; // Set the role to 'Shop Owner'
+  TextEditingController _phoneNumberController = TextEditingController();
+  TextEditingController _proofOfPaymentController = TextEditingController();
+  final String _selectedRole = 'Shop Owner';
+  Uint8List? _imageBytes; // Use Uint8List instead of File
 
   @override
   void initState() {
@@ -307,11 +389,9 @@ class _InformationScreenState extends State<InformationScreen> {
                           }
                           return null;
                         },
-                        
                       ),
-                      
                       TextFormField(
-                        controller: _PhoneNumer,
+                        controller: _phoneNumberController,
                         decoration: InputDecoration(labelText: 'Phone Number'),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -319,6 +399,18 @@ class _InformationScreenState extends State<InformationScreen> {
                           }
                           return null;
                         },
+                      ),
+                      TextFormField(
+                        controller: _proofOfPaymentController,
+                        decoration: InputDecoration(labelText: 'Proof of Payment'),
+                        validator: (value) {
+                          if (_imageBytes == null) {
+                            return 'Please upload proof of payment';
+                          }
+                          return null;
+                        },
+                        readOnly: true,
+                        onTap: _selectImage,
                       ),
                       ElevatedButton(
                         onPressed: () {
@@ -328,6 +420,29 @@ class _InformationScreenState extends State<InformationScreen> {
                         },
                         child: Text('Save'),
                       ),
+                      SizedBox(height: 20),
+                      _imageBytes == null
+                          ? ElevatedButton(
+                              onPressed: () {
+                                _selectImage();
+                              },
+                              child: Text('Upload Proof of Payment'),
+                            )
+                          : Column(
+                              children: [
+                                Image.memory(
+                                  _imageBytes!, // Use _imageBytes as image source
+                                  width: 200,
+                                  height: 200,
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    _uploadImage();
+                                  },
+                                  child: Text('Confirm Upload'),
+                                ),
+                              ],
+                            ),
                     ],
                   ),
                 ),
@@ -342,15 +457,16 @@ class _InformationScreenState extends State<InformationScreen> {
   void _saveUserInfo() async {
     String firstName = _firstNameController.text;
     String lastName = _lastNameController.text;
+    String phoneNumber = _phoneNumberController.text;
+    String proofOfPaymentUrl = _imageBytes != null ? await _uploadImage() : '';
 
     try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(_user?.uid)
-          .set({
+      await FirebaseFirestore.instance.collection('users').doc(_user?.uid).set({
         'firstName': firstName,
         'lastName': lastName,
-        'role': _selectedRole, // Set the role directly to 'Shop Owner'
+        'phoneNumber': phoneNumber,
+        'role': _selectedRole,
+        'proofOfPaymentUrl': proofOfPaymentUrl,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -359,7 +475,6 @@ class _InformationScreenState extends State<InformationScreen> {
         ),
       );
 
-      // Navigate to the MainApp screen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MainApp()),
@@ -370,6 +485,34 @@ class _InformationScreenState extends State<InformationScreen> {
           content: Text('Error: $error'),
         ),
       );
+    }
+  }
+
+  void _selectImage() async {
+    final pickedFile = await ImagePicker().getImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes(); // Read bytes from picked file
+      setState(() {
+        _imageBytes = Uint8List.fromList(bytes); // Convert bytes to Uint8List
+      });
+    }
+  }
+
+  Future<String> _uploadImage() async {
+    try {
+      String fileName = _user!.uid + '_proofOfPaymentUrl.jpg';
+      Reference storageReference = FirebaseStorage.instance.ref().child('proofOfPaymentUrl/$fileName');
+      UploadTask uploadTask = storageReference.putData(_imageBytes!); // Use putData for Uint8List
+      await uploadTask.whenComplete(() => null);
+      String imageUrl = await storageReference.getDownloadURL();
+      return imageUrl;
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error uploading proof of payment: $error'),
+        ),
+      );
+      return '';
     }
   }
 }
